@@ -1,0 +1,105 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.cc }} / ${{ matrix.variant }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+        variant: [default, asan, chaos, paranoid, nostats, quarantine]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the library
+        run: make CC=${{ matrix.cc }}
+
+      - name: No brk/sbrk dependency (plan phase 1.2)
+        run: make CC=${{ matrix.cc }} check-no-brk
+
+      - name: Stricter warnings than the build uses, as errors
+        run: make CC=${{ matrix.cc }} strict
+
+      # The concurrent suites are scheduling dependent, so the default variant
+      # runs them several times: that is how the one race this project had was
+      # found in the first place.
+      - name: Tests
+        if: matrix.variant == 'default'
+        run: make CC=${{ matrix.cc }} REPEAT=3 test
+
+      - name: AddressSanitizer
+        if: matrix.variant == 'asan'
+        run: make CC=${{ matrix.cc }} test-asan
+
+      - name: Delay injection at every race window
+        if: matrix.variant == 'chaos'
+        run: make CC=${{ matrix.cc }} test-chaos
+
+      - name: Consistency checked while threads run
+        if: matrix.variant == 'paranoid'
+        run: make CC=${{ matrix.cc }} test-paranoid
+
+      - name: Without the informational counters
+        if: matrix.variant == 'nostats'
+        run: make CC=${{ matrix.cc }} test-nostats
+
+      - name: Bounded delayed coalescing
+        if: matrix.variant == 'quarantine'
+        run: make CC=${{ matrix.cc }} test-quarantine
+
+  thread-sanitizer:
+    name: ThreadSanitizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # ThreadSanitizer's shadow mapping cannot cope with the mmap
+      # randomisation some kernels default to; the Makefile also falls back to
+      # setarch -R when it is available.
+      - name: Make room for the shadow mapping
+        run: sudo sysctl -w vm.mmap_rnd_bits=28 || true
+      - run: make test-tsan
+
+  interposed:
+    name: Real programs on the allocator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make preload
+      - run: make test-preload
+
+  fuzz:
+    name: Fuzzing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Long run, default build
+        run: |
+          make tests/test_fuzz
+          OSMEM_FUZZ_RUNS=4000 ./tests/test_fuzz
+      - name: Long run, delayed coalescing
+        run: |
+          make clean-tests
+          make EXTRA=-DOSMEM_QUARANTINE tests/test_fuzz
+          OSMEM_FUZZ_RUNS=2000 OSMEM_FUZZ_SEED=777 ./tests/test_fuzz
+      - name: Long run, with delay injection
+        run: |
+          make clean-tests
+          make EXTRA="-DOSMEM_CHAOS -DOSMEM_WORLD_LOCK" tests/test_fuzz
+          OSMEM_FUZZ_RUNS=1000 OSMEM_FUZZ_SEED=31337 ./tests/test_fuzz
+
+  benchmark:
+    name: Throughput (informational)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make bench
+      - name: With delayed coalescing
+        run: |
+          make clean-tests
+          make EXTRA=-DOSMEM_QUARANTINE bench

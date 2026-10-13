@@ -1,0 +1,15 @@
+# build artefacts
+*.o
+*.so
+
+# source archives written by `make pack`
+/../memory-allocator.tar.gz
+/../memory-allocator.zip
+
+# test binaries
+/tests/bench
+/tests/test_basic
+/tests/test_ffa
+/tests/test_reclaim
+/tests/test_reuse
+/tests/test_threads
