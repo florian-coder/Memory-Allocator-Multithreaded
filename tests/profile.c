@@ -5,7 +5,7 @@
  * gprof's instrumentation is not thread safe, so this deliberately runs on one
  * thread: the question it answers is where the time goes on the same-thread
  * churn path, which is exactly the path that is slower than glibc's and the
- * one Phase 3.4 of the plan pays for.
+ * one immediate coalescing pays for.
  *
  * The workload is the same shape as the throughput benchmark -- a live set
  * churning through small blocks -- so the profile describes the numbers

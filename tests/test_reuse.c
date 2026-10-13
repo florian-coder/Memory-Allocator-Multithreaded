@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Phase 3: the free list.  Reuse, splitting, coalescing in both directions,
+ * The free list.  Reuse, splitting, coalescing in both directions,
  * giving the trailing hole back to the arena's bump pointer, best fit, and a
  * long randomised run that must not fragment the arena away.
  */
@@ -139,7 +139,7 @@ static void test_coalesce(void)
 	void *p;
 	int i;
 
-	t_begin("Phase 3.4: adjacent holes merge forwards, backwards and both ways");
+	t_begin("adjacent holes merge forwards, backwards and both ways");
 	expect_empty("start");
 
 	/* Five consecutive 128-byte blocks carved from the bump pointer. */

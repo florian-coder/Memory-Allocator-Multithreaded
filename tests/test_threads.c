@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Phase 2 (private arenas, orphan adoption) and Phase 3.1-3.3 (a block freed
- * by a thread that did not allocate it).
+ * Private arenas, orphan adoption, and cross-thread frees (a block freed by a
+ * thread that did not allocate it).
  */
 
 #include <pthread.h>
@@ -13,7 +13,7 @@
 #define SEQ_THREADS 48
 #define STRESS_THREADS 8
 
-/* ----------------------------------------- Phase 2A: one arena per thread */
+/* --------------------------------------------------- one arena per thread */
 
 static pthread_barrier_t barrier;
 
@@ -67,7 +67,7 @@ static void test_private_arenas(void)
 	struct osmem_stats before, after;
 	int i, j;
 
-	t_begin("Phase 2A: concurrent threads get private, lock-free arenas");
+	t_begin("concurrent threads get private, lock-free arenas");
 	osmem_stats(&before);
 	pthread_barrier_init(&barrier, NULL, PRIVATE_THREADS);
 	for (i = 0; i < PRIVATE_THREADS; i++)
@@ -103,7 +103,7 @@ static void test_private_arenas(void)
 	CHECK_SOUND();
 }
 
-/* ------------------------------------- Phase 2B: adopting orphaned arenas */
+/* ----------------------------------------------- adopting orphaned arenas */
 
 static const void *seq_arena[SEQ_THREADS];
 
@@ -133,7 +133,7 @@ static void test_orphan_adoption(void)
 	pthread_t th;
 	int i;
 
-	t_begin("Phase 2B: a new thread adopts the arena of a finished one");
+	t_begin("a new thread adopts the arena of a finished one");
 	osmem_stats(&before);
 	for (i = 0; i < SEQ_THREADS; i++) {
 		CHECK(pthread_create(&th, NULL, seq_worker, (void *)(long)i) == 0);
@@ -155,7 +155,7 @@ static void test_orphan_adoption(void)
 	CHECK_SOUND();
 }
 
-/* ------------------------- Phase 3.1-3.3: freeing somebody else's memory */
+/* ---------------------------------------- freeing somebody else's memory */
 
 #define QUEUE_SIZE 256
 #define HANDOVER 20000
@@ -239,7 +239,7 @@ static void test_cross_thread_free(void)
 	struct osmem_stats before, after;
 	pthread_t prod, cons;
 
-	t_begin("Phase 3: blocks allocated by one thread, freed by another");
+	t_begin("blocks allocated by one thread, freed by another");
 	osmem_stats(&before);
 	pthread_mutex_init(&q.lock, NULL);
 	pthread_cond_init(&q.not_empty, NULL);

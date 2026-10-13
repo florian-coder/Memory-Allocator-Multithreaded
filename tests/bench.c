@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Throughput comparison against glibc malloc, for the two regimes the plan
- * cares about: few threads (private, lock-free arenas) and many threads
- * (shared pool).  Informational -- it asserts only that nothing fails.
+ * Throughput comparison against glibc malloc, for the two regimes the
+ * allocator is built for: few threads (private, lock-free arenas) and many
+ * threads (shared pool).  Informational -- it asserts only that nothing fails.
  */
 
 #include <pthread.h>

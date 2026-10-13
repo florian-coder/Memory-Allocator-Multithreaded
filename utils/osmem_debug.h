@@ -43,7 +43,7 @@ struct osmem_stats {
 	size_t munmap_calls;
 	size_t remote_frees;		/* cross-thread frees deferred to the owner */
 	size_t ffa_allocs;		/* allocations served by the FFA path */
-	size_t adoptions;		/* orphaned arenas taken over (Phase 2B) */
+	size_t adoptions;		/* orphaned arenas taken over */
 	size_t reclaims;		/* arenas pulled back out of the FFA pool */
 	size_t arena_poisoned;		/* arenas quarantined after a fork()  */
 	size_t map_denied;		/* mappings refused (real or injected) */

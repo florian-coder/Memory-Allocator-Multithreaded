@@ -79,7 +79,7 @@ strict:
 	done
 	@echo "strict: no diagnostics"
 
-# Phase 1.2 of the plan: the allocator must not contain a single brk/sbrk call.
+# The allocator must not contain a single brk/sbrk call.
 check-no-brk: $(TARGET)
 	@if nm -D --undefined-only $(TARGET) | grep -qE ' (brk|sbrk)$$'; then \
 		echo "check-no-brk: $(TARGET) still references brk/sbrk"; exit 1; \
@@ -105,7 +105,7 @@ test-chaos:
 	$(MAKE) clean-tests
 
 # Bounded delayed coalescing: parks small freed blocks instead of merging them
-# straight away.  A deviation from Phase 3.4 of the plan, so it is off by
+# straight away.  A departure from immediate coalescing, so it is off by
 # default; the fragmentation assertions in test_reuse are the guard rail.
 test-quarantine:
 	$(MAKE) clean-tests

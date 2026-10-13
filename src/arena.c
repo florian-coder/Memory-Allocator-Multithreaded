@@ -4,7 +4,7 @@
  *
  * Start-up (lazy, so that a program which never allocates never maps a page),
  * per-thread identity, the table of arenas, and the four ownership
- * transitions: create, adopt an orphan (Phase 2B), reclaim one out of the
+ * transitions: create, adopt an orphan, reclaim one out of the
  * shared pool, and release on thread exit.  arena_acquire() at the bottom is
  * the single implementation of the concurrency contract in osmem_internal.h.
  */
@@ -186,7 +186,7 @@ OSMEM_INTERNAL void osmem_init(void)
 	if (page > 0)
 		g_page = (size_t)page;
 
-	/* A_max: the kernel-facing budget from Phase 1.4. */
+	/* A_max: the kernel-facing budget on arena mappings. */
 	amax = 8 * cpu_count();
 	if (amax > ARENA_MAX_DEFAULT_CAP)
 		amax = ARENA_MAX_DEFAULT_CAP;
@@ -371,12 +371,12 @@ static void atfork_child(void)
 }
 
 /*
- * One mmap() per arena (Phase 1.3).  Private arenas may not spend the whole
- * A_max budget: two slots are kept in reserve for the shared pool, so that a
- * thread which cannot get a private arena always has somewhere to go
- * (Phase 2C) without having to steal an arena from a thread that is still
- * running, and so that the pool can grow to two arenas -- halving contention
- * in the shared regime -- without having to wait for an arena to be orphaned.
+ * One mmap() per arena.  Private arenas may not spend the whole A_max budget:
+ * two slots are kept in reserve for the shared pool, so that a thread which
+ * cannot get a private arena always has somewhere to go without having to
+ * steal an arena from a thread that is still running, and so that the pool
+ * can grow to two arenas -- halving contention in the shared regime --
+ * without having to wait for an arena to be orphaned.
  */
 OSMEM_INTERNAL struct arena *arena_create(unsigned long long owner, enum arena_state state)
 {
@@ -433,7 +433,7 @@ OSMEM_INTERNAL struct arena *arena_create(unsigned long long owner, enum arena_s
 }
 
 /*
- * Phase 2B: take over an arena whose thread is gone.  Ownership is only taken
+ * Take over an arena whose thread is gone.  Ownership is only taken
  * when the arena can actually serve the request, so a thread never ends up
  * owning an arena it cannot use.
  */

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * API semantics plus the Phase 1 promises: nothing is allocated before the
+ * API semantics plus the start-up guarantees: nothing is allocated before the
  * first request, brk/sbrk is never touched, and memory arrives as arenas.
  */
 
@@ -16,7 +16,7 @@ static void test_lazy_start(void)
 	struct osmem_stats st;
 	void *p;
 
-	t_begin("Phase 1.1: nothing is mapped before the first request");
+	t_begin("nothing is mapped before the first request");
 	osmem_stats(&st);
 	CHECKF(st.arena_count == 0, "arena_count is %zu before any allocation", st.arena_count);
 	CHECKF(st.bytes_mapped == 0, "%zu bytes already mapped", st.bytes_mapped);
@@ -47,7 +47,7 @@ static void test_no_brk(void)
 	void *ptr[NPTR];
 	int i, round;
 
-	t_begin("Phase 1.2: the program break never moves");
+	t_begin("the program break never moves");
 	CHECK(keep_libc_heap_busy != NULL);
 	/* No libc allocation may happen between the two probes. */
 	before = sbrk(0);

@@ -2,7 +2,7 @@
 /*
  * Giving physical pages back to the kernel.
  *
- * The plan is explicit that arena *mappings* are never released -- that is what
+ * By design, arena *mappings* are never released -- that is what
  * keeps the mapping count inside A_max.  But holding the mapping does not
  * require holding the pages: MADV_DONTNEED drops the physical memory while the
  * mapping stays, so a process that had one burst does not sit at its peak RSS

@@ -124,7 +124,7 @@ idle gives its physical pages back to the kernel without giving up its mapping.
 │   └── printf.[ch]           # heap-free printf (framework)
 ├── tests/
 │   ├── test_common.[ch]      # harness: checks, patterns, /proc introspection
-│   ├── test_basic.c          # API semantics and the Phase 1 promises
+│   ├── test_basic.c          # API semantics and the start-up guarantees
 │   ├── test_reuse.c          # free list: reuse, split, coalesce, fragmentation
 │   ├── test_threads.c        # private arenas, adoption, cross-thread free
 │   ├── test_ffa.c            # the shared regime and the A_max cap

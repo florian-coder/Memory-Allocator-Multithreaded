@@ -2,9 +2,9 @@
 /*
  * osmem.c -- the public API.
  *
- * os_malloc(), os_calloc(), os_realloc(), os_free(), the allocation ladder of
- * Phase 2 that they all funnel through, and the blocks that are too large for
- * an arena and get a private mapping of their own.
+ * os_malloc(), os_calloc(), os_realloc(), os_free(), the allocation ladder
+ * that they all funnel through, and the blocks that are too large for an
+ * arena and get a private mapping of their own.
  */
 
 #define _GNU_SOURCE
@@ -165,7 +165,7 @@ static size_t need_for(size_t size)
 }
 
 /*
- * Phase 2: the ladder.  Private arena -> adopted orphan -> new private arena
+ * The allocation ladder.  Private arena -> adopted orphan -> new private arena
  * -> shared pool -> private mapping as a last resort.
  */
 static void *alloc_common(size_t size, int want_zero)
@@ -192,7 +192,7 @@ static void *alloc_common(size_t size, int want_zero)
 	tls_register();
 	me = self_id();
 
-	/* A: private arena, lock-free (Phase 2A). */
+	/* A: private arena, lock-free. */
 	a = tl_arena;
 	if (a && atomic_load_explicit(&a->owner, memory_order_relaxed) == me) {
 		p = arena_alloc(a, need, &zeroed);
@@ -281,7 +281,7 @@ void *os_calloc(size_t nmemb, size_t size)
 }
 
 /*
- * Phase 3: the header tells us which arena the block came from; arena_acquire()
+ * The header tells us which arena the block came from; arena_acquire()
  * picks the cheapest safe way in.
  */
 static void free_inner(void *ptr)

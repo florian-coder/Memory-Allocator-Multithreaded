@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * ffa.c -- the shared "free-for-all" regime of Phase 2C.
+ * ffa.c -- the shared "free-for-all" regime.
  *
  * Reached once no private arena is available any more.  Scan the pool with
  * trylock so a busy arena is skipped rather than queued on, grow the pool if
@@ -68,7 +68,7 @@ static void *ffa_grow(size_t need, int *zeroed)
 }
 
 /*
- * Phase 2C.  No private arena is available any more, so share: scan the pool
+ * No private arena is available any more, so share: scan the pool
  * with trylock and never wait behind a busy arena; only if every shared arena
  * is contended do we queue up, and then on the roomiest one.
  */

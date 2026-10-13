@@ -21,7 +21,7 @@
 struct arena;
 
 /*
- * Per-allocation metadata -- the "hidden header" from Phase 3.1 of the plan.
+ * Per-allocation metadata -- the "hidden header".
  * It sits immediately before the pointer handed back to the caller, so that
  * os_free() can recover both the size of the block and the arena it was carved
  * from, no matter which thread does the freeing.

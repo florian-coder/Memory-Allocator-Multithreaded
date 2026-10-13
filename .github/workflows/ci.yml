@@ -20,7 +20,7 @@ jobs:
       - name: Build the library
         run: make CC=${{ matrix.cc }}
 
-      - name: No brk/sbrk dependency (plan phase 1.2)
+      - name: No brk/sbrk dependency
         run: make CC=${{ matrix.cc }} check-no-brk
 
       - name: Stricter warnings than the build uses, as errors

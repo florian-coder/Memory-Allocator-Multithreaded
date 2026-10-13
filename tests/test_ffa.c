@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Phase 1.4 and Phase 2C: with the arena budget deliberately set to 3, many
+ * The shared regime: with the arena budget deliberately set to 3, many
  * more threads than arenas have to share.  Checks that the shared regime
  * engages, that the number of mappings the kernel sees stays inside A_max,
  * and that allocation never fails while the kernel still has memory.
@@ -79,7 +79,7 @@ static void test_thread_explosion(void)
 	int vmas_before, vmas_after;
 	int i, j, n, ndistinct = 0;
 
-	t_begin("Phase 2C: 64 threads share 3 arenas");
+	t_begin("64 threads share 3 arenas");
 	vmas_before = count_vmas();
 	pthread_barrier_init(&barrier, NULL, MANY_THREADS);
 	for (i = 0; i < MANY_THREADS; i++)
@@ -103,7 +103,7 @@ static void test_thread_explosion(void)
 	       "%zu bytes mapped for %d arenas of %d bytes", st.bytes_mapped,
 	       ARENA_MAX, ARENA_SIZE);
 
-	/* Phase 1.3/1.4: every arena really is one anonymous read/write mapping,
+	/* Every arena really is one anonymous read/write mapping,
 	 * and the whole process never holds more than A_max of them.  (The raw
 	 * mapping count also moves with pthread stacks, which glibc caches, and
 	 * the kernel merges adjacent anonymous mappings, so the arenas are
@@ -167,7 +167,7 @@ static void *solo_worker(void *arg)
 /*
  * Once the storm is over every arena is idle, either orphaned or still in the
  * shared pool.  A thread arriving now must get a private, lock-free arena
- * again -- by adopting an orphan (Phase 2B) or by pulling an idle one out of
+ * again -- by adopting an orphan (arena_adopt) or by pulling an idle one out of
  * the pool (arena_reclaim) -- and it must not cost a new mapping.  Which of
  * the two routes a given run takes depends on what the storm left behind, so
  * the test pins down the outcome and the fact that exactly one arena left the

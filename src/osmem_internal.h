@@ -2,14 +2,14 @@
 /*
  * osmem_internal.h -- shared internals of the adaptive arena allocator.
  *
- * Implements the following plan:
+ * Design overview:
  *
- *  Phase 1  Lazy start, no brk/sbrk at all.  Memory comes from the kernel as
+ *  Memory   Lazy start, no brk/sbrk at all.  Memory comes from the kernel as
  *           "arenas": one mmap() each, carved in user space by a local bump
  *           pointer plus a local free list.  A hard cap (A_max) limits how
  *           many such mappings the process may ever ask for.
  *
- *  Phase 2  malloc() climbs a ladder:
+ *  Alloc    malloc() climbs a ladder:
  *             A. the calling thread's *private* arena, with no locking at all;
  *             B. adoption of an arena orphaned by a thread that has exited;
  *             C. a new private arena, while the A_max budget allows it;
@@ -17,7 +17,7 @@
  *             D. the shared free-for-all pool: trylock scan over the shared
  *                arenas, then a blocking lock on the roomiest one.
  *
- *  Phase 3  free() reads the hidden header to find the arena the block was
+ *  Free     free() reads the hidden header to find the arena the block was
  *           carved from, takes the cheapest safe route into that arena's free
  *           list, and coalesces with the physical neighbours straight away.
  *           Arena memory is never handed back to the kernel; only blocks that
@@ -33,7 +33,7 @@
  *   block.c           everything *inside* one arena: size-bucketed free
  *                     lists, splitting, coalescing, the cross-thread free
  *                     stack, and carving a block out
- *   ffa.c             the shared (free-for-all) regime of Phase 2C
+ *   ffa.c             the shared (free-for-all) regime
  *   osmem.c           the public API, plus blocks that own a private mapping
  *   debug.c           introspection and the consistency checker
  *
@@ -48,9 +48,9 @@
  * owner, so no one else may enter it -- not even to free.  A thread freeing a
  * block that belongs to somebody else's private arena therefore does *not*
  * touch the arena; it pushes the block on a lock-free stack (arena->remote)
- * which the owner drains on its next allocation.  This is the one place where
- * the plan contradicted itself (Phase 2A promises zero locks while Phase 3.3
- * wants the freeing thread to take the owner's mutex).
+ * which the owner drains on its next allocation.  The obvious alternative,
+ * letting the freeing thread take the owner's mutex, would put a lock back
+ * on the private fast path.
  *
  * Every path that mutates an arena under the lock must re-check the owner
  * afterwards, including the ones that look like they cannot need it --
@@ -155,7 +155,7 @@ OSMEM_INTERNAL void osmem_world_init(void);
 
 /* ------------------------------------------------------------------ tuning */
 
-#define ARENA_SIZE_DEFAULT	(4UL << 20)	/* 4 MiB per mmap, per plan 1.3 */
+#define ARENA_SIZE_DEFAULT	(4UL << 20)	/* 4 MiB per mmap */
 #define ARENA_SIZE_MIN		(64UL << 10)
 #define ARENA_HARD_MAX		128		/* ceiling for A_max            */
 #define ARENA_MAX_DEFAULT_CAP	64
@@ -171,11 +171,11 @@ OSMEM_INTERNAL void osmem_world_init(void);
 /*
  * Optional delayed coalescing (-DOSMEM_QUARANTINE).
  *
- * Phase 3.4 of the plan requires every free to coalesce with its physical
- * neighbours immediately, and that is what the default build does.  It is also
- * what costs about half the single-threaded throughput next to glibc, whose
- * tcache pushes a small block on a per-thread list and skips the boundary
- * tags, the neighbour flags and the bin bookkeeping entirely.
+ * The default build coalesces every free with its physical neighbours
+ * immediately.  That is what costs about half the single-threaded throughput
+ * next to glibc, whose tcache pushes a small block on a per-thread list and
+ * skips the boundary tags, the neighbour flags and the bin bookkeeping
+ * entirely.
  *
  * This flag parks a *bounded* number of small freed blocks per exact size
  * class instead of inserting them, and hands them straight back on the next

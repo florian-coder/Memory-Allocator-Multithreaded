@@ -3,8 +3,8 @@
  * block.c -- everything that happens inside a single arena.
  *
  * The size-bucketed free lists (61 exact-size bins below 1 KiB, power-of-two
- * bins above, with a summary bitmap), splitting, the immediate coalescing of
- * Phase 3.4 including handing a trailing hole back to the bump pointer, the
+ * bins above, with a summary bitmap), splitting, immediate coalescing
+ * including handing a trailing hole back to the bump pointer, the
  * lock-free stack that carries blocks freed by a thread which was not allowed
  * inside, and arena_alloc(), which carves a block out.
  *
@@ -136,7 +136,7 @@ static struct block_meta *bin_find(struct arena *a, size_t need)
 
 /*
  * Hand a page range back to the kernel without giving up the mapping, so the
- * arena budget of Phase 1.4 is untouched but the physical footprint drops.
+ * arena budget (A_max) is untouched but the physical footprint drops.
  * MADV_DONTNEED on a private anonymous mapping also means the range reads as
  * zero again, which is why the caller may push the arena's high-water mark
  * back: the calloc() fast path depends on that invariant.
@@ -230,7 +230,7 @@ OSMEM_INTERNAL void blk_trim(struct arena *a, struct block_meta *b, size_t have,
 }
 
 /*
- * Phase 3.4: put a block back into its arena, merging it with the physically
+ * Put a block back into its arena, merging it with the physically
  * adjacent holes, and give the space back to the bump pointer when the block
  * ends up sitting at the frontier.
  */
